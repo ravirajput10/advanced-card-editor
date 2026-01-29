@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,12 @@ import {
     Unlock,
     Eye,
     EyeOff,
+    ImagePlus,
+    Crop,
+    FlipHorizontal,
+    FlipVertical,
 } from 'lucide-react';
-import type { CanvasElement, TextElement, RectElement, CircleElement, LineElement, IconElement } from '@/store/types';
+import type { CanvasElement, TextElement, RectElement, CircleElement, LineElement, IconElement, ImageElement } from '@/store/types';
 
 const FONTS = [
     'Arial',
@@ -196,6 +201,7 @@ export function PropertiesPanel() {
                 {element.type === 'rect' && <RectProperties element={element} onChange={handleChange} />}
                 {element.type === 'circle' && <CircleProperties element={element} onChange={handleChange} />}
                 {element.type === 'line' && <LineProperties element={element} onChange={handleChange} />}
+                {element.type === 'image' && <ImageProperties element={element} onChange={handleChange} />}
                 {element.type === 'icon' && <IconProperties element={element} onChange={handleChange} />}
             </div>
         </ScrollArea>
@@ -457,6 +463,208 @@ function IconProperties({
                 <label className="text-xs font-medium text-muted-foreground">Icon Color</label>
                 <div className="mt-1">
                     <ColorPicker color={element.fill} onChange={(color) => onChange({ fill: color })} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Image properties
+function ImageProperties({
+    element,
+    onChange,
+}: {
+    element: ImageElement;
+    onChange: (attrs: Partial<ImageElement>) => void;
+}) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [cropMode, setCropMode] = useState(false);
+    const [cropValues, setCropValues] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
+
+    const handleReplaceImage = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+            onChange({ src: dataUrl });
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    const applyCrop = () => {
+        // Create a canvas to crop the image
+        const img = new window.Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            // Calculate crop dimensions
+            const cropX = (cropValues.left / 100) * img.width;
+            const cropY = (cropValues.top / 100) * img.height;
+            const cropWidth = img.width - ((cropValues.left + cropValues.right) / 100) * img.width;
+            const cropHeight = img.height - ((cropValues.top + cropValues.bottom) / 100) * img.height;
+
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+
+            ctx.drawImage(
+                img,
+                cropX, cropY, cropWidth, cropHeight,
+                0, 0, cropWidth, cropHeight
+            );
+
+            const croppedDataUrl = canvas.toDataURL('image/png');
+            onChange({
+                src: croppedDataUrl,
+                width: cropWidth,
+                height: cropHeight,
+            });
+            setCropMode(false);
+            setCropValues({ top: 0, right: 0, bottom: 0, left: 0 });
+        };
+        img.src = element.src;
+    };
+
+    return (
+        <div className="space-y-4">
+            {/* Hidden file input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+            />
+
+            {/* Image Preview */}
+            <div>
+                <label className="text-xs font-medium text-muted-foreground">Preview</label>
+                <div className="mt-1 relative w-full h-24 bg-muted rounded-md overflow-hidden">
+                    <img
+                        src={element.src}
+                        alt="Preview"
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+            </div>
+
+            {/* Replace Image */}
+            <div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleReplaceImage}
+                >
+                    <ImagePlus className="h-4 w-4 mr-2" />
+                    Replace Image
+                </Button>
+            </div>
+
+            {/* Crop Section */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground">Crop</label>
+                    <Button
+                        variant={cropMode ? 'secondary' : 'outline'}
+                        size="sm"
+                        onClick={() => setCropMode(!cropMode)}
+                    >
+                        <Crop className="h-4 w-4 mr-1" />
+                        {cropMode ? 'Cancel' : 'Crop'}
+                    </Button>
+                </div>
+
+                {cropMode && (
+                    <div className="mt-3 space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <span className="text-xs text-muted-foreground">Top %</span>
+                                <Input
+                                    type="number"
+                                    value={cropValues.top}
+                                    onChange={(e) => setCropValues({ ...cropValues, top: Number(e.target.value) })}
+                                    className="h-8 text-sm"
+                                    min={0}
+                                    max={50}
+                                />
+                            </div>
+                            <div>
+                                <span className="text-xs text-muted-foreground">Bottom %</span>
+                                <Input
+                                    type="number"
+                                    value={cropValues.bottom}
+                                    onChange={(e) => setCropValues({ ...cropValues, bottom: Number(e.target.value) })}
+                                    className="h-8 text-sm"
+                                    min={0}
+                                    max={50}
+                                />
+                            </div>
+                            <div>
+                                <span className="text-xs text-muted-foreground">Left %</span>
+                                <Input
+                                    type="number"
+                                    value={cropValues.left}
+                                    onChange={(e) => setCropValues({ ...cropValues, left: Number(e.target.value) })}
+                                    className="h-8 text-sm"
+                                    min={0}
+                                    max={50}
+                                />
+                            </div>
+                            <div>
+                                <span className="text-xs text-muted-foreground">Right %</span>
+                                <Input
+                                    type="number"
+                                    value={cropValues.right}
+                                    onChange={(e) => setCropValues({ ...cropValues, right: Number(e.target.value) })}
+                                    className="h-8 text-sm"
+                                    min={0}
+                                    max={50}
+                                />
+                            </div>
+                        </div>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            className="w-full"
+                            onClick={applyCrop}
+                        >
+                            Apply Crop
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {/* Flip Controls */}
+            <div>
+                <label className="text-xs font-medium text-muted-foreground">Flip</label>
+                <div className="flex gap-2 mt-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => onChange({ scaleX: element.scaleX * -1 })}
+                    >
+                        <FlipHorizontal className="h-4 w-4 mr-1" />
+                        Horizontal
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => onChange({ scaleY: element.scaleY * -1 })}
+                    >
+                        <FlipVertical className="h-4 w-4 mr-1" />
+                        Vertical
+                    </Button>
                 </div>
             </div>
         </div>
