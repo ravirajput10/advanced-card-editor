@@ -3,7 +3,7 @@ import { Stage, Layer, Rect, Transformer } from 'react-konva';
 import type { Stage as StageType } from 'konva/lib/Stage';
 import type Konva from 'konva';
 import { useEditorStore } from '@/store/useEditorStore';
-import { RectNode, CircleNode, LineNode, TextNode, ImageNode } from '@/components/elements';
+import { RectNode, CircleNode, LineNode, TextNode, ImageNode, IconNode } from '@/components/elements';
 import type { CanvasElement, TextElement } from '@/store/types';
 
 export function EditorCanvas() {
@@ -104,7 +104,6 @@ export function EditorCanvas() {
 
         // Get absolute position
         const absPos = textNode.absolutePosition();
-        const containerRect = containerRef.current.getBoundingClientRect();
 
         // Calculate textarea style
         const style: React.CSSProperties = {
@@ -227,6 +226,16 @@ export function EditorCanvas() {
             case 'image':
                 return (
                     <ImageNode
+                        key={element.id}
+                        element={element}
+                        isSelected={isSelected}
+                        onSelect={() => handleSelect(element.id)}
+                        onChange={(attrs) => handleChange(element.id, attrs)}
+                    />
+                );
+            case 'icon':
+                return (
+                    <IconNode
                         key={element.id}
                         element={element}
                         isSelected={isSelected}

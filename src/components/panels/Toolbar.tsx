@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useEditorStore, useTemporalStore } from '@/store/useEditorStore';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,18 +19,19 @@ import {
     Circle,
     Minus,
     Image,
-    Sparkles,
     Undo2,
     Redo2,
     Trash2,
 } from 'lucide-react';
-import type { RectElement, CircleElement, TextElement, LineElement } from '@/store/types';
+import { IconPicker } from './IconPicker';
+import type { RectElement, CircleElement, TextElement, LineElement, ImageElement, IconElement } from '@/store/types';
 
 // Generate unique ID
 const generateId = () =>
     `element-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
 export function Toolbar() {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const addElement = useEditorStore((state) => state.addElement);
     const deleteElements = useEditorStore((state) => state.deleteElements);
     const selectedIds = useEditorStore((state) => state.selectedIds);
@@ -132,6 +134,79 @@ export function Toolbar() {
         addElement(element);
     };
 
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+
+            // Create a temp image to get dimensions
+            const img = new window.Image();
+            img.onload = () => {
+                // Scale down if too large
+                let width = img.width;
+                let height = img.height;
+                const maxSize = 200;
+
+                if (width > maxSize || height > maxSize) {
+                    const ratio = Math.min(maxSize / width, maxSize / height);
+                    width = width * ratio;
+                    height = height * ratio;
+                }
+
+                const element: ImageElement = {
+                    id: generateId(),
+                    type: 'image',
+                    name: file.name.substring(0, 20),
+                    x: 100,
+                    y: 100,
+                    width,
+                    height,
+                    rotation: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    opacity: 1,
+                    visible: true,
+                    locked: false,
+                    src: dataUrl,
+                };
+                addElement(element);
+            };
+            img.src = dataUrl;
+        };
+        reader.readAsDataURL(file);
+
+        // Reset file input
+        e.target.value = '';
+    };
+
+    const handleIconSelect = (iconName: string) => {
+        const element: IconElement = {
+            id: generateId(),
+            type: 'icon',
+            name: iconName,
+            x: 150,
+            y: 150,
+            width: 48,
+            height: 48,
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            opacity: 1,
+            visible: true,
+            locked: false,
+            iconName,
+            fill: '#000000',
+        };
+        addElement(element);
+    };
+
     const handleDelete = () => {
         if (selectedIds.length > 0) {
             deleteElements(selectedIds);
@@ -141,6 +216,15 @@ export function Toolbar() {
     return (
         <TooltipProvider>
             <div className="flex items-center gap-1">
+                {/* Hidden file input for image upload */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                />
+
                 {/* Add Text */}
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -179,25 +263,18 @@ export function Toolbar() {
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Add Image - TODO */}
+                {/* Add Image */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleImageClick}>
                             <Image className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Add Image (coming soon)</TooltipContent>
+                    <TooltipContent>Add Image</TooltipContent>
                 </Tooltip>
 
-                {/* Add Icon - TODO */}
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
-                            <Sparkles className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Add Icon (coming soon)</TooltipContent>
-                </Tooltip>
+                {/* Add Icon */}
+                <IconPicker onSelect={handleIconSelect} />
 
                 <div className="w-px h-6 bg-border mx-2" />
 
