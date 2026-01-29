@@ -22,8 +22,13 @@ import {
     Undo2,
     Redo2,
     Trash2,
+    Download,
+    FileImage,
+    FileText,
 } from 'lucide-react';
 import { IconPicker } from './IconPicker';
+import { getStageRef } from '@/lib/stageRef';
+import { jsPDF } from 'jspdf';
 import type { RectElement, CircleElement, TextElement, LineElement, ImageElement, IconElement } from '@/store/types';
 
 // Generate unique ID
@@ -213,6 +218,42 @@ export function Toolbar() {
         }
     };
 
+    const handleExport = (format: 'png' | 'jpeg' | 'pdf') => {
+        const stage = getStageRef();
+        if (!stage) {
+            console.error('Stage not available');
+            return;
+        }
+
+        const pixelRatio = 2;
+        const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+        const dataUrl = stage.toDataURL({
+            mimeType,
+            quality: format === 'jpeg' ? 0.92 : undefined,
+            pixelRatio,
+        });
+
+        if (format === 'pdf') {
+            const width = stage.width();
+            const height = stage.height();
+            const orientation = width > height ? 'landscape' : 'portrait';
+            const pdf = new jsPDF({
+                orientation,
+                unit: 'px',
+                format: [width, height],
+            });
+            pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+            pdf.save('card-design.pdf');
+        } else {
+            const link = document.createElement('a');
+            link.download = `card-design.${format}`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
     return (
         <TooltipProvider>
             <div className="flex items-center gap-1">
@@ -312,7 +353,6 @@ export function Toolbar() {
 
                 <div className="w-px h-6 bg-border mx-2" />
 
-                {/* Delete */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button
@@ -327,6 +367,36 @@ export function Toolbar() {
                     </TooltipTrigger>
                     <TooltipContent>Delete Selected</TooltipContent>
                 </Tooltip>
+
+                <div className="w-px h-6 bg-border mx-2" />
+
+                {/* Export */}
+                <DropdownMenu>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Download className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>Export</TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExport('png')}>
+                            <FileImage className="h-4 w-4 mr-2" />
+                            Export as PNG
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('jpeg')}>
+                            <FileImage className="h-4 w-4 mr-2" />
+                            Export as JPEG
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export as PDF
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </TooltipProvider>
     );

@@ -5,6 +5,7 @@ import type Konva from 'konva';
 import { useEditorStore } from '@/store/useEditorStore';
 import { RectNode, CircleNode, LineNode, TextNode, ImageNode, IconNode } from '@/components/elements';
 import type { CanvasElement, TextElement } from '@/store/types';
+import { setStageRef } from '@/lib/stageRef';
 
 export function EditorCanvas() {
     const stageRef = useRef<StageType>(null);
@@ -26,6 +27,12 @@ export function EditorCanvas() {
     const addToSelection = useEditorStore((state) => state.addToSelection);
     const clearSelection = useEditorStore((state) => state.clearSelection);
     const updateElement = useEditorStore((state) => state.updateElement);
+
+    // Register stage ref globally for export
+    useEffect(() => {
+        setStageRef(stageRef.current);
+        return () => setStageRef(null);
+    }, []);
 
     // Update transformer when selection changes
     useEffect(() => {
