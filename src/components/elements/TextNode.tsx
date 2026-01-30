@@ -44,7 +44,7 @@ export const TextNode = memo(function TextNode({
         textNode.fontSize(fontSize);
 
         // Shrink until it fits
-        while (fontSize > 8 && (textNode.width() > maxWidth * 1.1 || textNode.height() > maxHeight)) {
+        while (fontSize > 8 && (textNode.width() > maxWidth || textNode.height() > maxHeight)) {
             fontSize -= 1;
             textNode.fontSize(fontSize);
         }

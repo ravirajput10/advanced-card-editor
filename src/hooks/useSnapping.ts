@@ -26,19 +26,27 @@ export function useSnapping(
             dragX: number,
             dragY: number,
             dragWidth: number,
-            dragHeight: number
+            dragHeight: number,
+            snapToGrid: boolean = false,
+            gridSize: number = 20
         ): SnapResult => {
             const snapLines: SnapLine[] = [];
             let snappedX = dragX;
             let snappedY = dragY;
 
-            // Dragged element edges
-            const dragLeft = dragX;
-            const dragCenterX = dragX + dragWidth / 2;
-            const dragRight = dragX + dragWidth;
-            const dragTop = dragY;
-            const dragCenterY = dragY + dragHeight / 2;
-            const dragBottom = dragY + dragHeight;
+            // Apply grid snapping first if enabled
+            if (snapToGrid) {
+                snappedX = Math.round(dragX / gridSize) * gridSize;
+                snappedY = Math.round(dragY / gridSize) * gridSize;
+            }
+
+            // Dragged element edges (after potential grid snap)
+            const dragLeft = snappedX;
+            const dragCenterX = snappedX + dragWidth / 2;
+            const dragRight = snappedX + dragWidth;
+            const dragTop = snappedY;
+            const dragCenterY = snappedY + dragHeight / 2;
+            const dragBottom = snappedY + dragHeight;
 
             // Canvas snap points
             const canvasSnapPointsX = [0, canvasWidth / 2, canvasWidth];

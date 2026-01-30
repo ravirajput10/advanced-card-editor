@@ -40,6 +40,7 @@ export function EditorCanvas() {
     const setPan = useEditorStore((state) => state.setPan);
     const showGrid = useEditorStore((state) => state.showGrid);
     const gridSize = useEditorStore((state) => state.gridSize);
+    const snapToGrid = useEditorStore((state) => state.snapToGrid);
 
     // Snapping hook
     const { getSnapPosition } = useSnapping(elements, canvasWidth, canvasHeight);
@@ -85,7 +86,9 @@ export function EditorCanvas() {
             node.x(),
             node.y(),
             element.width * element.scaleX,
-            element.height * element.scaleY
+            element.height * element.scaleY,
+            snapToGrid,
+            gridSize
         );
 
         // Snap the node position
@@ -94,7 +97,7 @@ export function EditorCanvas() {
 
         // Show snap lines
         setSnapLines(result.snapLines);
-    }, [elements, getSnapPosition]);
+    }, [elements, getSnapPosition, snapToGrid, gridSize]);
 
     const handleDragEnd = useCallback(() => {
         // Clear snap lines when drag ends

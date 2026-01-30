@@ -30,10 +30,14 @@ import {
     ZoomIn,
     ZoomOut,
     Maximize,
+    Grid3X3,
+    Upload,
+    Save,
 } from 'lucide-react';
 import { IconPicker } from './IconPicker';
 import { getStageRef } from '@/lib/stageRef';
 import { jsPDF } from 'jspdf';
+import { useDesignJSON } from '@/hooks/useDesignJSON';
 import type { RectElement, CircleElement, TextElement, LineElement, ImageElement, IconElement } from '@/store/types';
 
 // Generate unique ID
@@ -42,6 +46,7 @@ const generateId = () =>
 
 export function Toolbar() {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const jsonInputRef = useRef<HTMLInputElement>(null);
     const addElement = useEditorStore((state) => state.addElement);
     const deleteElements = useEditorStore((state) => state.deleteElements);
     const selectedIds = useEditorStore((state) => state.selectedIds);
@@ -51,6 +56,16 @@ export function Toolbar() {
     const zoom = useEditorStore((state) => state.zoom);
     const setZoom = useEditorStore((state) => state.setZoom);
     const resetView = useEditorStore((state) => state.resetView);
+
+    // Grid settings
+    const showGrid = useEditorStore((state) => state.showGrid);
+    const setShowGrid = useEditorStore((state) => state.setShowGrid);
+    const snapToGrid = useEditorStore((state) => state.snapToGrid);
+    const setSnapToGrid = useEditorStore((state) => state.setSnapToGrid);
+
+    // JSON hooks
+    const { exportJSON, importJSON } = useDesignJSON();
+
     const { undo, redo, pastStates, futureStates } = useTemporalStore().getState();
 
     const canUndo = pastStates.length > 0;
@@ -274,9 +289,23 @@ export function Toolbar() {
         }
     };
 
+    const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            await importJSON(file);
+            // Reset file input
+            e.target.value = '';
+        } catch (error) {
+            console.error('Import failed:', error);
+            alert('Failed to import design: ' + (error instanceof Error ? error.message : 'Unknown error'));
+        }
+    };
+
     return (
         <TooltipProvider>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center h-full gap-1 px-4 overflow-x-auto no-scrollbar">
                 {/* Hidden file input for image upload */}
                 <input
                     ref={fileInputRef}
@@ -284,6 +313,15 @@ export function Toolbar() {
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
+                />
+
+                {/* Hidden file input for JSON import */}
+                <input
+                    ref={jsonInputRef}
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={handleImportJSON}
                 />
 
                 {/* Add Text */}
@@ -447,8 +485,48 @@ export function Toolbar() {
                             <FileText className="h-4 w-4 mr-2" />
                             Export as PDF
                         </DropdownMenuItem>
+                        <div className="h-px bg-border my-1" />
+                        <DropdownMenuItem onClick={exportJSON}>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save as JSON
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => jsonInputRef.current?.click()}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Import JSON
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <div className="w-px h-6 bg-border mx-2" />
+
+                {/* Grid controls */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant={showGrid ? "secondary" : "ghost"}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setShowGrid(!showGrid)}
+                        >
+                            <Grid3X3 className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Show Grid</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant={snapToGrid ? "secondary" : "ghost"}
+                            size="icon"
+                            className="h-8 w-8 text-[10px] font-bold"
+                            onClick={() => setSnapToGrid(!snapToGrid)}
+                        >
+                            SNAP
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Snap to Grid</TooltipContent>
+                </Tooltip>
 
                 <div className="w-px h-6 bg-border mx-2" />
 

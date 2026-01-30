@@ -315,6 +315,20 @@ function TextProperties({
                     </Button>
                 </div>
             </div>
+
+            <div className="pt-2">
+                <Button
+                    variant={element.autoFit ? 'secondary' : 'outline'}
+                    size="sm"
+                    className="w-full text-[10px] uppercase font-bold tracking-wider h-7"
+                    onClick={() => onChange({ autoFit: !element.autoFit })}
+                >
+                    {element.autoFit ? 'Auto-fit: ON' : 'Auto-fit: OFF'}
+                </Button>
+                <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                    Automatically scales font to fit width
+                </p>
+            </div>
         </div>
     );
 }
