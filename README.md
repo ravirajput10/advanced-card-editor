@@ -9,7 +9,7 @@ A powerful, feature-rich card design editor built with React, TypeScript, and Ko
 ### 🎨 Canvas & Elements
 - **600×350 canvas** with customizable background color
 - **Multiple element types**: Text, Rectangle, Circle, Line, Image, Icon
-- **40+ Lucide icons** available in the icon picker
+- **50+ Lucide icons** available in the icon picker
 - **Drag, resize, rotate** any element with intuitive controls
 
 ### ✏️ Editing
@@ -111,44 +111,48 @@ src/
 We chose **Zustand** for its simplicity and excellent performance:
 
 ```typescript
-// Central store with all editor state
-const useEditorStore = create<EditorState>()(
-  temporal(
-    (set, get) => ({
-      elements: [],
-      selectedIds: [],
-      // ... actions
-    }),
-    { limit: 50 } // Undo/redo history limit
+// Central store with persistence & undo/redo support
+export const useEditorStore = create<EditorState>()(
+  persist(
+    temporal(
+      (set, get) => ({
+        elements: [],
+        selectedIds: [],
+        // ... actions
+      }),
+      { limit: 50 } // Undo/redo history limit
+    ),
+    {
+      name: 'advanced-card-editor-v1',
+      storage: createJSONStorage(() => localStorage),
+      // ... partialization
+    }
   )
 );
 ```
 
 **Why Zustand?**
-- Minimal boilerplate compared to Redux
-- Built-in selector support prevents unnecessary re-renders
-- Easy integration with `zundo` for temporal (undo/redo) state
+- **Minimal boilerplate**: No need for actions/reducers like Redux.
+- **Persistence**: Built-in `persist` middleware for automatic `localStorage` saving (PWA friendly).
+- **Temporal State**: Seamless integration with `zundo` for 50-step undo/redo history.
+- **Performance**: Subscription-based updates prevent unnecessary re-renders of the entire app.
 
 ### Snapping & Alignment
 
-The `useSnapping` hook calculates snap points when dragging elements:
+The editor implements two types of snapping:
+1. **Magnet Snapping**: Elements snap to canvas edges, center points, and other elements (edges/centers).
+2. **Grid Snapping**: Elements snap to a customizable grid (default 20px) when enabled.
 
 ```typescript
-// Snap threshold in pixels
-const SNAP_THRESHOLD = 5;
-
-// Calculate snap points for:
-// 1. Canvas edges (left, right, top, bottom)
-// 2. Canvas center (horizontal and vertical)
-// 3. Other elements (edges and centers)
-
-const getSnapPosition = (element, currentX, currentY) => {
-  // Check all snap points, return snapped position + guidelines
-  return { x, y, snapLines };
-};
+// useSnapping.ts logic
+const result = getSnapPosition(
+    elementId, x, y, width, height,
+    snapToGrid, gridSize
+);
+// Returns snapped x/y and vertical/horizontal guideline arrays
 ```
 
-Guidelines are rendered as red lines via the `Guidelines` component using Konva `Line` shapes.
+Guidelines are rendered as high-visibility red lines using Konva `Line` shapes, wrapped in a dedicated `Group` for easy visibility management.
 
 ### Undo/Redo
 
@@ -166,23 +170,21 @@ const { undo, redo, pastStates, futureStates } = useTemporalStore();
 
 Every state mutation is automatically tracked, allowing 50 steps of history.
 
-### Export
+### Export System
 
-The `useExport` hook handles all export formats:
+The export logic in `Toolbar.tsx` ensures professional results:
+
+1. **Format Support**: Export to PNG (2x scale), JPEG (quality 0.92), and multi-page PDF (via `jsPDF`).
+2. **Clean Captures**: Using Konva's `stage.findOne('#id')`, we temporarily hide UI elements (`#selection-transformer`, `#canvas-grid`, `#snap-guidelines`) before capture and restore them immediately after.
+3. **Perfect Clipping**: All exports are strictly clipped to the `600x350` canvas bounds, regardless of the user's current zoom or pan position.
 
 ```typescript
-// PNG/JPEG: Use Konva's toDataURL
-const dataUrl = stage.toDataURL({ 
-  pixelRatio: 2, // 2x resolution for sharp exports
-  mimeType: 'image/png'
+const dataUrl = stage.toDataURL({
+    x: 0, y: 0, width: 600, height: 350, // Clip to bounds
+    pixelRatio: 2,
+    mimeType: 'image/png'
 });
-
-// PDF: Use jsPDF with canvas image
-const pdf = new jsPDF({ orientation: 'landscape' });
-pdf.addImage(dataUrl, 'PNG', x, y, width, height);
 ```
-
-Before export, we hide the Transformer (selection handles) by setting its nodes to empty.
 
 ### Performance Optimizations
 
