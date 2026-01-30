@@ -46,14 +46,67 @@ export function PropertiesPanel() {
     const selectedIds = useEditorStore((state) => state.selectedIds);
     const updateElement = useEditorStore((state) => state.updateElement);
 
+    const canvasWidth = useEditorStore((state) => state.canvasWidth);
+    const canvasHeight = useEditorStore((state) => state.canvasHeight);
+    const canvasBackground = useEditorStore((state) => state.canvasBackground);
+    const setCanvasBackground = useEditorStore((state) => state.setCanvasBackground);
+
     // Get selected element(s)
     const selectedElements = elements.filter((el) => selectedIds.includes(el.id));
 
     if (selectedElements.length === 0) {
         return (
-            <div className="p-4 text-center text-muted-foreground">
-                <p className="text-sm">Select an element to edit its properties</p>
-            </div>
+            <ScrollArea className="h-full">
+                <div className="p-4 space-y-6">
+                    <div>
+                        <h3 className="text-sm font-semibold mb-4">Canvas Properties</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground">Background Color</label>
+                                <div className="mt-1">
+                                    <ColorPicker
+                                        color={canvasBackground}
+                                        onChange={setCanvasBackground}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-medium text-muted-foreground">Dimensions</label>
+                                <div className="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                        <span className="text-xs text-muted-foreground">Width</span>
+                                        <Input
+                                            type="number"
+                                            value={canvasWidth}
+                                            disabled
+                                            className="h-8 text-sm opacity-60"
+                                        />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-muted-foreground">Height</span>
+                                        <Input
+                                            type="number"
+                                            value={canvasHeight}
+                                            disabled
+                                            className="h-8 text-sm opacity-60"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    Standard card size (600x350)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                        <p className="text-xs text-center text-muted-foreground">
+                            Select an element to edit its specific properties
+                        </p>
+                    </div>
+                </div>
+            </ScrollArea>
         );
     }
 
