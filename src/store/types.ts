@@ -30,6 +30,7 @@ export interface TextElement extends BaseElement {
   textDecoration: 'none' | 'underline';
   fill: string;
   align: 'left' | 'center' | 'right';
+  autoFit?: boolean; // Smart text fitting - auto-resize font to fit width
 }
 
 // Rectangle element
@@ -104,6 +105,11 @@ export interface EditorState {
   panX: number;
   panY: number;
 
+  // Grid settings
+  showGrid: boolean;
+  gridSize: number;
+  snapToGrid: boolean;
+
   // Elements (ordered by z-index, first = bottom, last = top)
   elements: CanvasElement[];
 
@@ -137,4 +143,7 @@ export interface EditorState {
   setZoom: (zoom: number) => void;
   setPan: (x: number, y: number) => void;
   resetView: () => void;
+  setShowGrid: (show: boolean) => void;
+  setGridSize: (size: number) => void;
+  setSnapToGrid: (snap: boolean) => void;
 }

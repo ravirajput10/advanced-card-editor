@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react';
+import { memo, useRef, useEffect, useState } from 'react';
 import { Text } from 'react-konva';
 import type { TextElement } from '@/store/types';
 import type Konva from 'konva';
@@ -19,12 +19,38 @@ export const TextNode = memo(function TextNode({
     onDoubleClick,
 }: TextNodeProps) {
     const textRef = useRef<Konva.Text>(null);
+    const [autoFitFontSize, setAutoFitFontSize] = useState(element.fontSize);
 
     // Build font style string
     const fontStyle = [
         element.fontWeight === 'bold' ? 'bold' : '',
         element.fontStyle === 'italic' ? 'italic' : '',
     ].filter(Boolean).join(' ') || 'normal';
+
+    // Smart text fitting - auto-resize font to fit width
+    useEffect(() => {
+        const textNode = textRef.current;
+        if (!textNode || !element.autoFit) {
+            setAutoFitFontSize(element.fontSize);
+            return;
+        }
+
+        // Calculate the optimal font size
+        let fontSize = element.fontSize;
+        const maxWidth = element.width;
+        const maxHeight = element.height || 200; // Default max height
+
+        // Reset to original size first
+        textNode.fontSize(fontSize);
+
+        // Shrink until it fits
+        while (fontSize > 8 && (textNode.width() > maxWidth * 1.1 || textNode.height() > maxHeight)) {
+            fontSize -= 1;
+            textNode.fontSize(fontSize);
+        }
+
+        setAutoFitFontSize(fontSize);
+    }, [element.text, element.width, element.height, element.fontSize, element.autoFit]);
 
     return (
         <Text
@@ -34,7 +60,7 @@ export const TextNode = memo(function TextNode({
             y={element.y}
             width={element.width}
             text={element.text}
-            fontSize={element.fontSize}
+            fontSize={element.autoFit ? autoFitFontSize : element.fontSize}
             fontFamily={element.fontFamily}
             fontStyle={fontStyle}
             textDecoration={element.textDecoration === 'underline' ? 'underline' : ''}

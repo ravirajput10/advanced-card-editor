@@ -8,6 +8,7 @@ import type { CanvasElement, TextElement } from '@/store/types';
 import { setStageRef } from '@/lib/stageRef';
 import { useSnapping, type SnapLine } from '@/hooks/useSnapping';
 import { Guidelines } from './Guidelines';
+import { Grid } from './Grid';
 
 export function EditorCanvas() {
     const stageRef = useRef<StageType>(null);
@@ -37,6 +38,8 @@ export function EditorCanvas() {
     const panY = useEditorStore((state) => state.panY);
     const setZoom = useEditorStore((state) => state.setZoom);
     const setPan = useEditorStore((state) => state.setPan);
+    const showGrid = useEditorStore((state) => state.showGrid);
+    const gridSize = useEditorStore((state) => state.gridSize);
 
     // Snapping hook
     const { getSnapPosition } = useSnapping(elements, canvasWidth, canvasHeight);
@@ -366,6 +369,14 @@ export function EditorCanvas() {
                         width={canvasWidth}
                         height={canvasHeight}
                         fill={canvasBackground}
+                    />
+
+                    {/* Grid overlay */}
+                    <Grid
+                        width={canvasWidth}
+                        height={canvasHeight}
+                        gridSize={gridSize}
+                        visible={showGrid}
                     />
 
                     {/* Render all elements */}

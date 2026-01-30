@@ -24,6 +24,11 @@ export const useEditorStore = create<EditorState>()(
       panX: 0,
       panY: 0,
 
+      // Grid settings
+      showGrid: false,
+      gridSize: 20,
+      snapToGrid: false,
+
       // Elements
       elements: [],
 
@@ -180,6 +185,18 @@ export const useEditorStore = create<EditorState>()(
 
       resetView: () => {
         set({ zoom: 1, panX: 0, panY: 0 });
+      },
+
+      setShowGrid: (showGrid: boolean) => {
+        set({ showGrid });
+      },
+
+      setGridSize: (gridSize: number) => {
+        set({ gridSize: Math.max(5, Math.min(100, gridSize)) });
+      },
+
+      setSnapToGrid: (snapToGrid: boolean) => {
+        set({ snapToGrid });
       },
     }),
     {
