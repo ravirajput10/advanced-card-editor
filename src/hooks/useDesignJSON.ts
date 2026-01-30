@@ -81,55 +81,8 @@ export function useDesignJSON() {
         });
     }, []);
 
-    // Save to localStorage
-    const saveToLocalStorage = useCallback(() => {
-        const design = {
-            version: '1.0',
-            canvas: {
-                width: canvasWidth,
-                height: canvasHeight,
-                background: canvasBackground,
-            },
-            elements,
-            groups,
-            savedAt: new Date().toISOString(),
-        };
-        
-        localStorage.setItem('card-editor-design', JSON.stringify(design));
-    }, [elements, groups, canvasBackground, canvasWidth, canvasHeight]);
-
-    // Load from localStorage
-    const loadFromLocalStorage = useCallback(() => {
-        const saved = localStorage.getItem('card-editor-design');
-        if (!saved) return false;
-        
-        try {
-            const design = JSON.parse(saved);
-            const state = useEditorStore.getState();
-            
-            state.setSelection([]);
-            
-            if (design.canvas?.background) {
-                state.setCanvasBackground(design.canvas.background);
-            }
-            
-            const existingIds = state.elements.map(el => el.id);
-            state.deleteElements(existingIds);
-            
-            design.elements.forEach((element: unknown) => {
-                state.addElement(element as Parameters<typeof state.addElement>[0]);
-            });
-            
-            return true;
-        } catch {
-            return false;
-        }
-    }, []);
-
     return {
         exportJSON,
         importJSON,
-        saveToLocalStorage,
-        loadFromLocalStorage,
     };
 }

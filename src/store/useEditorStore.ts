@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
 import type {
   EditorState,
@@ -10,10 +11,11 @@ import type {
 // Generate unique ID
 const generateId = () => `element-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-// Create store with undo/redo support (20 steps)
+// Create store with persistence & undo/redo support
 export const useEditorStore = create<EditorState>()(
-  temporal(
-    (set, get) => ({
+  persist(
+    temporal(
+      (set, get) => ({
       // Canvas defaults
       canvasWidth: 600,
       canvasHeight: 350,
@@ -200,14 +202,24 @@ export const useEditorStore = create<EditorState>()(
       },
     }),
     {
-      limit: 20, // 20 undo/redo steps
+      limit: 50, // 50 undo/redo steps
       partialize: (state) => {
         // Only track elements, groups, and canvas background for undo/redo
         const { elements, groups, canvasBackground } = state;
         return { elements, groups, canvasBackground };
       },
     }
-  )
+  ),
+  {
+    name: 'advanced-card-editor-storage',
+    partialize: (state) => ({
+      elements: state.elements,
+      groups: state.groups,
+      canvasBackground: state.canvasBackground,
+      theme: state.theme,
+    }),
+  }
+)
 );
 
 // Export temporal store for undo/redo access

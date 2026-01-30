@@ -516,7 +516,7 @@ export function Toolbar() {
                         <div className="h-px bg-border my-1" />
                         <DropdownMenuItem onClick={exportJSON}>
                             <Save className="h-4 w-4 mr-2" />
-                            Save as JSON
+                            Download Design (JSON)
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => jsonInputRef.current?.click()}>
                             <Upload className="h-4 w-4 mr-2" />
