@@ -7,6 +7,8 @@ export function useKeyboard() {
   const deleteElements = useEditorStore((state) => state.deleteElements);
   const updateElement = useEditorStore((state) => state.updateElement);
   const setSelection = useEditorStore((state) => state.setSelection);
+  const groupElements = useEditorStore((state) => state.groupElements);
+  const ungroupElements = useEditorStore((state) => state.ungroupElements);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,6 +42,29 @@ export function useKeyboard() {
       if (isCtrlOrCmd && e.key === 'a') {
         e.preventDefault();
         setSelection(elements.map((el) => el.id));
+        return;
+      }
+
+      // Group: Ctrl+G
+      if (isCtrlOrCmd && e.key === 'g' && !e.shiftKey) {
+        e.preventDefault();
+        if (selectedIds.length >= 2) {
+          groupElements(selectedIds);
+        }
+        return;
+      }
+
+      // Ungroup: Ctrl+Shift+G
+      if (isCtrlOrCmd && e.key === 'G' && e.shiftKey) {
+        e.preventDefault();
+        // Find groupId from any selected element
+        for (const id of selectedIds) {
+          const element = elements.find((el) => el.id === id);
+          if (element?.groupId) {
+            ungroupElements(element.groupId);
+            break;
+          }
+        }
         return;
       }
 
@@ -89,5 +114,6 @@ export function useKeyboard() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIds, elements, deleteElements, updateElement, setSelection]);
+  }, [selectedIds, elements, deleteElements, updateElement, setSelection, groupElements, ungroupElements]);
 }
+

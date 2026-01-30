@@ -57,10 +57,11 @@ export function Toolbar() {
     const canRedo = futureStates.length > 0;
     const canGroup = selectedIds.length >= 2;
 
-    // Check if selected elements are in a group
-    const selectedElement = selectedIds.length === 1 ? elements.find(el => el.id === selectedIds[0]) : null;
-    const canUngroup = selectedElement?.groupId ? true : false;
-    const selectedGroupId = selectedElement?.groupId;
+    // Check if any selected element is in a group
+    const selectedGroupId = selectedIds
+        .map(id => elements.find(el => el.id === id)?.groupId)
+        .find(groupId => groupId !== undefined);
+    const canUngroup = !!selectedGroupId;
 
     const zoomPercent = Math.round(zoom * 100);
 

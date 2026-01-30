@@ -31,8 +31,10 @@ import {
     EyeOff,
     Lock,
     Unlock,
+    Group,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import type { CanvasElement } from '@/store/types';
 
 // Icon mapping for element types
@@ -104,6 +106,13 @@ function LayerItem({
 
             {/* Name */}
             <span className="flex-1 text-sm truncate">{element.name}</span>
+
+            {/* Group indicator */}
+            {element.groupId && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-0.5">
+                    <Group className="h-3 w-3" />
+                </Badge>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-0.5">

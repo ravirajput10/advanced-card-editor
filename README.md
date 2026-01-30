@@ -45,6 +45,8 @@ A powerful, feature-rich card design editor built with React, TypeScript, and Ko
 |----------|--------|
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
+| `Ctrl+G` | Group selected elements |
+| `Ctrl+Shift+G` | Ungroup selected elements |
 | `Delete` | Delete selected |
 | `Ctrl+A` | Select all |
 | `Arrow keys` | Move selected (1px) |
