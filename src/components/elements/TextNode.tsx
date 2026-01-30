@@ -6,7 +6,7 @@ import type Konva from 'konva';
 interface TextNodeProps {
     element: TextElement;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: Konva.KonvaEventObject<MouseEvent>) => void;
     onChange: (attrs: Partial<TextElement>) => void;
     onDoubleClick?: () => void;
 }
@@ -46,8 +46,8 @@ export const TextNode = memo(function TextNode({
             opacity={element.opacity}
             visible={element.visible}
             draggable={!element.locked}
-            onClick={onSelect}
-            onTap={onSelect}
+            onClick={(e) => onSelect(e)}
+            onTap={() => onSelect()}
             onDblClick={onDoubleClick}
             onDblTap={onDoubleClick}
             onDragEnd={(e) => {

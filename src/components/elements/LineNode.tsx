@@ -1,11 +1,12 @@
 import { memo } from 'react';
 import { Line } from 'react-konva';
+import type Konva from 'konva';
 import type { LineElement } from '@/store/types';
 
 interface LineNodeProps {
     element: LineElement;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: Konva.KonvaEventObject<MouseEvent>) => void;
     onChange: (attrs: Partial<LineElement>) => void;
 }
 
@@ -29,8 +30,8 @@ export const LineNode = memo(function LineNode({
             opacity={element.opacity}
             visible={element.visible}
             draggable={!element.locked}
-            onClick={onSelect}
-            onTap={onSelect}
+            onClick={(e) => onSelect(e)}
+            onTap={() => onSelect()}
             hitStrokeWidth={Math.max(10, element.strokeWidth)} // Easier to click
             onDragEnd={(e) => {
                 onChange({

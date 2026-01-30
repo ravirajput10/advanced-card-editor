@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# Advanced Card Editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A powerful, feature-rich card design editor built with React, TypeScript, and Konva.js.
 
-Currently, two official plugins are available:
+![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-4-teal)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+### 🎨 Canvas & Elements
+- **600×350 canvas** with customizable background color
+- **Multiple element types**: Text, Rectangle, Circle, Line, Image, Icon
+- **40+ Lucide icons** available in the icon picker
+- **Drag, resize, rotate** any element with intuitive controls
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+### ✏️ Editing
+- **Double-click text** for inline editing
+- **Properties Panel** with type-specific controls:
+  - Text: font, size, color, bold/italic/underline, alignment
+  - Shapes: fill, stroke, corner radius
+  - Images: replace, crop, flip horizontal/vertical
+  - Icons: color picker
+- **Layer Panel** with drag-to-reorder, visibility toggles, lock controls
 
-## Expanding the ESLint configuration
+### 🎯 Precision Tools
+- **Smart snapping** to canvas edges, center, and other elements
+- **Visual guidelines** appear during drag operations
+- **Group/Ungroup** multiple elements together
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🔍 Navigation
+- **Mouse wheel zoom** (10% - 300%)
+- **Zoom controls** in toolbar (+, -, reset)
+- **Pan support** with zoom
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 📤 Export
+- **PNG** with transparency (2x resolution)
+- **JPEG** with configurable quality
+- **PDF** print-ready document
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 🎭 Templates
+- **4 pre-designed templates** to get started quickly
+- Blank, Modern Business, Dark Minimal, Gradient Wave
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### ⌨️ Keyboard Shortcuts
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Delete` | Delete selected |
+| `Ctrl+A` | Select all |
+| `Arrow keys` | Move selected (1px) |
+| `Shift+Arrow` | Move selected (10px) |
+
+## Tech Stack
+
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS 4** - Styling
+- **shadcn/ui** - UI components
+- **Zustand** - State management with undo/redo
+- **Konva.js** - Canvas rendering
+- **jsPDF** - PDF export
+- **@dnd-kit** - Drag and drop for layer reordering
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Type check
+npx tsc --noEmit
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/
+│   ├── canvas/          # EditorCanvas, Guidelines
+│   ├── elements/        # RectNode, CircleNode, TextNode, etc.
+│   ├── layout/          # EditorLayout, ThemeToggle
+│   ├── panels/          # Toolbar, LayerPanel, PropertiesPanel
+│   └── ui/              # shadcn/ui components
+├── data/
+│   └── templates.ts     # Card templates
+├── hooks/
+│   ├── useKeyboard.ts   # Keyboard shortcuts
+│   ├── useSnapping.ts   # Smart snapping
+│   └── useExport.ts     # Export functionality
+├── lib/
+│   └── stageRef.ts      # Global stage reference
+├── store/
+│   ├── types.ts         # TypeScript types
+│   └── useEditorStore.ts # Zustand store
+└── App.tsx
+```
+
+## License
+
+MIT

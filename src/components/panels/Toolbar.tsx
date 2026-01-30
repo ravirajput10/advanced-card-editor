@@ -25,6 +25,11 @@ import {
     Download,
     FileImage,
     FileText,
+    Group,
+    Ungroup,
+    ZoomIn,
+    ZoomOut,
+    Maximize,
 } from 'lucide-react';
 import { IconPicker } from './IconPicker';
 import { getStageRef } from '@/lib/stageRef';
@@ -40,10 +45,24 @@ export function Toolbar() {
     const addElement = useEditorStore((state) => state.addElement);
     const deleteElements = useEditorStore((state) => state.deleteElements);
     const selectedIds = useEditorStore((state) => state.selectedIds);
+    const elements = useEditorStore((state) => state.elements);
+    const groupElements = useEditorStore((state) => state.groupElements);
+    const ungroupElements = useEditorStore((state) => state.ungroupElements);
+    const zoom = useEditorStore((state) => state.zoom);
+    const setZoom = useEditorStore((state) => state.setZoom);
+    const resetView = useEditorStore((state) => state.resetView);
     const { undo, redo, pastStates, futureStates } = useTemporalStore().getState();
 
     const canUndo = pastStates.length > 0;
     const canRedo = futureStates.length > 0;
+    const canGroup = selectedIds.length >= 2;
+
+    // Check if selected elements are in a group
+    const selectedElement = selectedIds.length === 1 ? elements.find(el => el.id === selectedIds[0]) : null;
+    const canUngroup = selectedElement?.groupId ? true : false;
+    const selectedGroupId = selectedElement?.groupId;
+
+    const zoomPercent = Math.round(zoom * 100);
 
     const addText = () => {
         const element: TextElement = {
@@ -368,6 +387,38 @@ export function Toolbar() {
                     <TooltipContent>Delete Selected</TooltipContent>
                 </Tooltip>
 
+                {/* Group */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => groupElements(selectedIds)}
+                            disabled={!canGroup}
+                        >
+                            <Group className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Group Elements (Ctrl+G)</TooltipContent>
+                </Tooltip>
+
+                {/* Ungroup */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => selectedGroupId && ungroupElements(selectedGroupId)}
+                            disabled={!canUngroup}
+                        >
+                            <Ungroup className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ungroup (Ctrl+Shift+G)</TooltipContent>
+                </Tooltip>
+
                 <div className="w-px h-6 bg-border mx-2" />
 
                 {/* Export */}
@@ -397,6 +448,57 @@ export function Toolbar() {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <div className="w-px h-6 bg-border mx-2" />
+
+                {/* Zoom Controls */}
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setZoom(zoom / 1.2)}
+                            disabled={zoom <= 0.1}
+                        >
+                            <ZoomOut className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Zoom Out</TooltipContent>
+                </Tooltip>
+
+                <span className="text-xs text-muted-foreground min-w-[40px] text-center">
+                    {zoomPercent}%
+                </span>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setZoom(zoom * 1.2)}
+                            disabled={zoom >= 3}
+                        >
+                            <ZoomIn className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Zoom In</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={resetView}
+                        >
+                            <Maximize className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Reset View (100%)</TooltipContent>
+                </Tooltip>
             </div>
         </TooltipProvider>
     );

@@ -99,6 +99,11 @@ export interface EditorState {
   canvasHeight: number;
   canvasBackground: string;
 
+  // Zoom & Pan
+  zoom: number;
+  panX: number;
+  panY: number;
+
   // Elements (ordered by z-index, first = bottom, last = top)
   elements: CanvasElement[];
 
@@ -129,4 +134,7 @@ export interface EditorState {
   setGuidelines: (guidelines: Guideline[]) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setCanvasBackground: (color: string) => void;
+  setZoom: (zoom: number) => void;
+  setPan: (x: number, y: number) => void;
+  resetView: () => void;
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { EditorLayout } from '@/components/layout';
 import { EditorCanvas } from '@/components/canvas';
 import { LayerPanel, PropertiesPanel, Toolbar } from '@/components/panels';
+import { TemplateGallery } from '@/components/panels/TemplateGallery';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useKeyboard } from '@/hooks';
 import './App.css';
@@ -23,7 +24,12 @@ function App() {
 
   return (
     <EditorLayout
-      toolbar={<Toolbar />}
+      toolbar={
+        <div className="flex items-center gap-4">
+          <TemplateGallery />
+          <Toolbar />
+        </div>
+      }
       layerPanel={<LayerPanel />}
       canvas={<EditorCanvas />}
       propertiesPanel={<PropertiesPanel />}

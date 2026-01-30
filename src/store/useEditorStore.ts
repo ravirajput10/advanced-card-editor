@@ -19,6 +19,11 @@ export const useEditorStore = create<EditorState>()(
       canvasHeight: 350,
       canvasBackground: '#ffffff',
 
+      // Zoom & Pan
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+
       // Elements
       elements: [],
 
@@ -162,6 +167,19 @@ export const useEditorStore = create<EditorState>()(
 
       setCanvasBackground: (color: string) => {
         set({ canvasBackground: color });
+      },
+
+      setZoom: (zoom: number) => {
+        // Clamp zoom between 0.1 and 3
+        set({ zoom: Math.max(0.1, Math.min(3, zoom)) });
+      },
+
+      setPan: (x: number, y: number) => {
+        set({ panX: x, panY: y });
+      },
+
+      resetView: () => {
+        set({ zoom: 1, panX: 0, panY: 0 });
       },
     }),
     {

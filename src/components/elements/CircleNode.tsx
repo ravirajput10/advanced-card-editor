@@ -1,11 +1,12 @@
 import { memo } from 'react';
 import { Ellipse } from 'react-konva';
+import type Konva from 'konva';
 import type { CircleElement } from '@/store/types';
 
 interface CircleNodeProps {
     element: CircleElement;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: Konva.KonvaEventObject<MouseEvent>) => void;
     onChange: (attrs: Partial<CircleElement>) => void;
 }
 
@@ -35,8 +36,8 @@ export const CircleNode = memo(function CircleNode({
             opacity={element.opacity}
             visible={element.visible}
             draggable={!element.locked}
-            onClick={onSelect}
-            onTap={onSelect}
+            onClick={(e) => onSelect(e)}
+            onTap={() => onSelect()}
             onDragEnd={(e) => {
                 // Convert center position back to top-left
                 onChange({

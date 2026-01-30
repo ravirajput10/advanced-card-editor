@@ -6,6 +6,8 @@ import { useEditorStore } from '@/store/useEditorStore';
 import { RectNode, CircleNode, LineNode, TextNode, ImageNode, IconNode } from '@/components/elements';
 import type { CanvasElement, TextElement } from '@/store/types';
 import { setStageRef } from '@/lib/stageRef';
+import { useSnapping, type SnapLine } from '@/hooks/useSnapping';
+import { Guidelines } from './Guidelines';
 
 export function EditorCanvas() {
     const stageRef = useRef<StageType>(null);
@@ -18,6 +20,9 @@ export function EditorCanvas() {
     const [editingTextValue, setEditingTextValue] = useState('');
     const [textareaStyle, setTextareaStyle] = useState<React.CSSProperties>({});
 
+    // Snapping state
+    const [snapLines, setSnapLines] = useState<SnapLine[]>([]);
+
     const canvasWidth = useEditorStore((state) => state.canvasWidth);
     const canvasHeight = useEditorStore((state) => state.canvasHeight);
     const canvasBackground = useEditorStore((state) => state.canvasBackground);
@@ -27,6 +32,71 @@ export function EditorCanvas() {
     const addToSelection = useEditorStore((state) => state.addToSelection);
     const clearSelection = useEditorStore((state) => state.clearSelection);
     const updateElement = useEditorStore((state) => state.updateElement);
+    const zoom = useEditorStore((state) => state.zoom);
+    const panX = useEditorStore((state) => state.panX);
+    const panY = useEditorStore((state) => state.panY);
+    const setZoom = useEditorStore((state) => state.setZoom);
+    const setPan = useEditorStore((state) => state.setPan);
+
+    // Snapping hook
+    const { getSnapPosition } = useSnapping(elements, canvasWidth, canvasHeight);
+
+    // Handle mouse wheel for zoom
+    const handleWheel = useCallback((e: Konva.KonvaEventObject<WheelEvent>) => {
+        e.evt.preventDefault();
+        const stage = stageRef.current;
+        if (!stage) return;
+
+        const oldScale = zoom;
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+
+        const mousePointTo = {
+            x: (pointer.x - panX) / oldScale,
+            y: (pointer.y - panY) / oldScale,
+        };
+
+        // Zoom in/out
+        const direction = e.evt.deltaY > 0 ? -1 : 1;
+        const scaleBy = 1.1;
+        const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+        const clampedScale = Math.max(0.1, Math.min(3, newScale));
+
+        const newPos = {
+            x: pointer.x - mousePointTo.x * clampedScale,
+            y: pointer.y - mousePointTo.y * clampedScale,
+        };
+
+        setZoom(clampedScale);
+        setPan(newPos.x, newPos.y);
+    }, [zoom, panX, panY, setZoom, setPan]);
+
+    // Handle drag with snapping
+    const handleDragMove = useCallback((e: Konva.KonvaEventObject<DragEvent>) => {
+        const node = e.target;
+        const element = elements.find(el => el.id === node.id());
+        if (!element) return;
+
+        const result = getSnapPosition(
+            element.id,
+            node.x(),
+            node.y(),
+            element.width * element.scaleX,
+            element.height * element.scaleY
+        );
+
+        // Snap the node position
+        node.x(result.x);
+        node.y(result.y);
+
+        // Show snap lines
+        setSnapLines(result.snapLines);
+    }, [elements, getSnapPosition]);
+
+    const handleDragEnd = useCallback(() => {
+        // Clear snap lines when drag ends
+        setSnapLines([]);
+    }, []);
 
     // Register stage ref globally for export
     useEffect(() => {
@@ -195,7 +265,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                     />
                 );
@@ -205,7 +275,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                     />
                 );
@@ -215,7 +285,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                     />
                 );
@@ -225,7 +295,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                         onDoubleClick={() => startTextEditing(element)}
                     />
@@ -236,7 +306,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                     />
                 );
@@ -246,7 +316,7 @@ export function EditorCanvas() {
                         key={element.id}
                         element={element}
                         isSelected={isSelected}
-                        onSelect={() => handleSelect(element.id)}
+                        onSelect={(e) => handleSelect(element.id, e)}
                         onChange={(attrs) => handleChange(element.id, attrs)}
                     />
                 );
@@ -266,10 +336,17 @@ export function EditorCanvas() {
         >
             <Stage
                 ref={stageRef}
-                width={canvasWidth}
-                height={canvasHeight}
+                width={canvasWidth * zoom + panX}
+                height={canvasHeight * zoom + panY}
+                scaleX={zoom}
+                scaleY={zoom}
+                x={panX}
+                y={panY}
                 onClick={handleStageClick}
                 onTap={handleStageClick}
+                onDragMove={handleDragMove}
+                onDragEnd={handleDragEnd}
+                onWheel={handleWheel}
             >
                 <Layer ref={layerRef}>
                     {/* Canvas background */}
@@ -284,6 +361,13 @@ export function EditorCanvas() {
 
                     {/* Render all elements */}
                     {elements.map(renderElement)}
+
+                    {/* Snap guidelines */}
+                    <Guidelines
+                        lines={snapLines}
+                        canvasWidth={canvasWidth}
+                        canvasHeight={canvasHeight}
+                    />
 
                     {/* Transformer for selection */}
                     <Transformer

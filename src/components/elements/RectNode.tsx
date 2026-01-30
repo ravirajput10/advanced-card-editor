@@ -1,11 +1,12 @@
 import { memo } from 'react';
 import { Rect } from 'react-konva';
+import type Konva from 'konva';
 import type { RectElement } from '@/store/types';
 
 interface RectNodeProps {
     element: RectElement;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: Konva.KonvaEventObject<MouseEvent>) => void;
     onChange: (attrs: Partial<RectElement>) => void;
 }
 
@@ -32,8 +33,8 @@ export const RectNode = memo(function RectNode({
             opacity={element.opacity}
             visible={element.visible}
             draggable={!element.locked}
-            onClick={onSelect}
-            onTap={onSelect}
+            onClick={(e) => onSelect(e)}
+            onTap={() => onSelect()}
             onDragEnd={(e) => {
                 onChange({
                     x: e.target.x(),

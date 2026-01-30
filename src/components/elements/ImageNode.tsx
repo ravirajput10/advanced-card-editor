@@ -1,11 +1,12 @@
 import { memo, useEffect, useState } from 'react';
 import { Image as KonvaImage } from 'react-konva';
+import type Konva from 'konva';
 import type { ImageElement } from '@/store/types';
 
 interface ImageNodeProps {
     element: ImageElement;
     isSelected: boolean;
-    onSelect: () => void;
+    onSelect: (e?: Konva.KonvaEventObject<MouseEvent>) => void;
     onChange: (attrs: Partial<ImageElement>) => void;
 }
 
@@ -44,8 +45,8 @@ export const ImageNode = memo(function ImageNode({
             opacity={element.opacity}
             visible={element.visible}
             draggable={!element.locked}
-            onClick={onSelect}
-            onTap={onSelect}
+            onClick={(e) => onSelect(e)}
+            onTap={() => onSelect()}
             onDragEnd={(e) => {
                 onChange({
                     x: e.target.x(),
