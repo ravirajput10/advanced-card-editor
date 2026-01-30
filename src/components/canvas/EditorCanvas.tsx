@@ -150,14 +150,23 @@ export function EditorCanvas() {
                 finishTextEditing();
                 return;
             }
+
+            const clickedElement = elements.find(el => el.id === id);
             const isCtrlPressed = e?.evt?.ctrlKey || e?.evt?.metaKey;
-            if (isCtrlPressed) {
+
+            // If element is in a group, select all group members
+            if (clickedElement?.groupId && !isCtrlPressed) {
+                const groupMembers = elements
+                    .filter(el => el.groupId === clickedElement.groupId)
+                    .map(el => el.id);
+                setSelection(groupMembers);
+            } else if (isCtrlPressed) {
                 addToSelection(id);
             } else {
                 setSelection([id]);
             }
         },
-        [setSelection, addToSelection, editingTextId]
+        [setSelection, addToSelection, editingTextId, elements]
     );
 
     // Handle element change

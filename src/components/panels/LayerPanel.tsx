@@ -9,7 +9,6 @@ import {
     type DragEndEvent,
 } from '@dnd-kit/core';
 import {
-    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     useSortable,
@@ -83,9 +82,9 @@ function LayerItem({
             ref={setNodeRef}
             style={style}
             className={cn(
-                'flex items-center gap-1 px-2 py-1.5 rounded-md border cursor-pointer transition-colors',
+                'layer-item flex items-center gap-1 px-2 py-1.5 rounded-md border cursor-pointer',
                 isSelected
-                    ? 'bg-primary/10 border-primary'
+                    ? 'selected bg-primary/10 border-primary'
                     : 'bg-card border-transparent hover:bg-muted',
                 isDragging && 'opacity-50',
                 !element.visible && 'opacity-40'
@@ -109,7 +108,7 @@ function LayerItem({
 
             {/* Group indicator */}
             {element.groupId && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-0.5">
+                <Badge variant="secondary" className="group-badge h-5 px-1.5 text-[10px] gap-0.5">
                     <Group className="h-3 w-3" />
                 </Badge>
             )}

@@ -104,6 +104,100 @@ src/
 └── App.tsx
 ```
 
+## Implementation Details
+
+### State Management (Zustand)
+
+We chose **Zustand** for its simplicity and excellent performance:
+
+```typescript
+// Central store with all editor state
+const useEditorStore = create<EditorState>()(
+  temporal(
+    (set, get) => ({
+      elements: [],
+      selectedIds: [],
+      // ... actions
+    }),
+    { limit: 50 } // Undo/redo history limit
+  )
+);
+```
+
+**Why Zustand?**
+- Minimal boilerplate compared to Redux
+- Built-in selector support prevents unnecessary re-renders
+- Easy integration with `zundo` for temporal (undo/redo) state
+
+### Snapping & Alignment
+
+The `useSnapping` hook calculates snap points when dragging elements:
+
+```typescript
+// Snap threshold in pixels
+const SNAP_THRESHOLD = 5;
+
+// Calculate snap points for:
+// 1. Canvas edges (left, right, top, bottom)
+// 2. Canvas center (horizontal and vertical)
+// 3. Other elements (edges and centers)
+
+const getSnapPosition = (element, currentX, currentY) => {
+  // Check all snap points, return snapped position + guidelines
+  return { x, y, snapLines };
+};
+```
+
+Guidelines are rendered as red lines via the `Guidelines` component using Konva `Line` shapes.
+
+### Undo/Redo
+
+Implemented using `zundo`, a Zustand middleware for temporal state:
+
+```typescript
+import { temporal } from 'zundo';
+
+// Wraps the store to track state changes
+const store = create(temporal(storeConfig, { limit: 50 }));
+
+// Access undo/redo from temporal store
+const { undo, redo, pastStates, futureStates } = useTemporalStore();
+```
+
+Every state mutation is automatically tracked, allowing 50 steps of history.
+
+### Export
+
+The `useExport` hook handles all export formats:
+
+```typescript
+// PNG/JPEG: Use Konva's toDataURL
+const dataUrl = stage.toDataURL({ 
+  pixelRatio: 2, // 2x resolution for sharp exports
+  mimeType: 'image/png'
+});
+
+// PDF: Use jsPDF with canvas image
+const pdf = new jsPDF({ orientation: 'landscape' });
+pdf.addImage(dataUrl, 'PNG', x, y, width, height);
+```
+
+Before export, we hide the Transformer (selection handles) by setting its nodes to empty.
+
+### Performance Optimizations
+
+1. **React.memo on all element components** - Prevents re-renders when other elements change
+2. **Zustand selectors** - Components only subscribe to the state they need
+3. **useCallback/useMemo** - Memoized event handlers and computed values
+4. **Konva layer batching** - `layerRef.current.batchDraw()` for grouped updates
+
+```typescript
+// Example: Only re-render when this specific element changes
+const RectNode = memo(function RectNode({ element, ...props }) {
+  // Component only renders when element prop changes
+});
+```
+
 ## License
 
 MIT
