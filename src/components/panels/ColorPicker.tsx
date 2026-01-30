@@ -15,7 +15,7 @@ interface ColorPickerProps {
 
 export function ColorPicker({ color, onChange, label }: ColorPickerProps) {
     const [localColor, setLocalColor] = useState(color);
-    const debounceRef = useRef<NodeJS.Timeout | null>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Sync with external color changes
     useEffect(() => {
