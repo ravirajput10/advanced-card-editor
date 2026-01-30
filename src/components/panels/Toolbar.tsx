@@ -262,11 +262,39 @@ export function Toolbar() {
 
         const pixelRatio = 2;
         const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+
+        // Find UI elements to hide
+        const transformer = stage.findOne('#selection-transformer');
+        const grid = stage.findOne('#canvas-grid');
+        const guidelines = stage.findOne('#snap-guidelines');
+
+        // Store original visibility
+        const transformerVisible = transformer?.visible();
+        const gridVisible = grid?.visible();
+        const guidelinesVisible = guidelines?.visible();
+
+        // Hide UI elements
+        transformer?.visible(false);
+        grid?.visible(false);
+        guidelines?.visible(false);
+
+        // Export only the canvas area (600x350)
+        // We use the layer for toDataURL if we want to avoid stage offsets/zoom
         const dataUrl = stage.toDataURL({
             mimeType,
             quality: format === 'jpeg' ? 0.92 : undefined,
             pixelRatio,
+            // Clip to canvas bounds (0,0 to 600,350)
+            x: 0,
+            y: 0,
+            width: 600,
+            height: 350,
         });
+
+        // Restore visibility
+        if (transformerVisible !== undefined) transformer?.visible(transformerVisible);
+        if (gridVisible !== undefined) grid?.visible(gridVisible);
+        if (guidelinesVisible !== undefined) guidelines?.visible(guidelinesVisible);
 
         if (format === 'pdf') {
             const width = stage.width();

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Stage, Layer, Rect, Transformer } from 'react-konva';
+import { Stage, Layer, Rect, Transformer, Group } from 'react-konva';
 import type { Stage as StageType } from 'konva/lib/Stage';
 import type Konva from 'konva';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -375,25 +375,30 @@ export function EditorCanvas() {
                     />
 
                     {/* Grid overlay */}
-                    <Grid
-                        width={canvasWidth}
-                        height={canvasHeight}
-                        gridSize={gridSize}
-                        visible={showGrid}
-                    />
+                    <Group id="canvas-grid">
+                        <Grid
+                            width={canvasWidth}
+                            height={canvasHeight}
+                            gridSize={gridSize}
+                            visible={showGrid}
+                        />
+                    </Group>
 
                     {/* Render all elements */}
                     {elements.map(renderElement)}
 
                     {/* Snap guidelines */}
-                    <Guidelines
-                        lines={snapLines}
-                        canvasWidth={canvasWidth}
-                        canvasHeight={canvasHeight}
-                    />
+                    <Group id="snap-guidelines">
+                        <Guidelines
+                            lines={snapLines}
+                            canvasWidth={canvasWidth}
+                            canvasHeight={canvasHeight}
+                        />
+                    </Group>
 
                     {/* Transformer for selection */}
                     <Transformer
+                        id="selection-transformer"
                         ref={transformerRef}
                         rotateEnabled={true}
                         enabledAnchors={[
